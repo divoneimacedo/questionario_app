@@ -9,7 +9,7 @@ class Home extends StatelessWidget{
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        /*visualDensity: VisualDensity.adaptivePlatformDensity,*/
       ),
       home: HomePage(),
     );
@@ -31,8 +31,9 @@ class _HomePageState extends State<HomePage> {
 
   var maskTel = MaskTextInputFormatter(mask: "(##) #####-####", filter: { "#": RegExp(r'[0-9]') });
   var maskCPF = MaskTextInputFormatter(mask: "###.###.###-##", filter: { "#": RegExp(r'[0-9]') });
+  //var maskDefault = MaskTextInputFormatter(mask: "#", filter: { "#": RegExp(r'[A-Za-z0-9]') });
   Genero _genero;
-  Genero dropdownValue = Genero("", "Selecione");
+
   @override
   Widget build(BuildContext context) {
 
@@ -61,8 +62,9 @@ class _HomePageState extends State<HomePage> {
                   Divider(),
                   buildTextField("Telefone", telefoneController, maskTel, TextInputType.phone),
                 Divider(),
-                DropdownButton(
+                DropdownButton<Genero>(
                   underline: SizedBox(),
+                  value: _genero,
                   hint: Text("Selecione o Gênero"),
                   items: Genero.getGeneros().map((Genero gen) {
                     return DropdownMenuItem<Genero>(
@@ -72,8 +74,10 @@ class _HomePageState extends State<HomePage> {
                   }).toList(),
 
                   onChanged: (Genero val) {
-                    _genero = val;
-                    print(_genero.name);
+                    setState(() {
+                      _genero = val;
+                      print(_genero.name);
+                    });
                   },
                 )
 
@@ -86,15 +90,26 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildTextField(String label,TextEditingController c,MaskTextInputFormatter m,TextInputType t){
+    if(m!=null)
       return TextField(
         decoration: InputDecoration(
           labelText: label,
           border: OutlineInputBorder(),
         ),
         controller: c,
-        inputFormatters: [m],
+        inputFormatters: [ m ],
         keyboardType: t,
       );
+    else
+      return TextField(
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        controller: c,
+        keyboardType: t,
+      );
+
   }
 }
 
@@ -109,7 +124,18 @@ class Genero {
     return <Genero>[
       Genero('M', 'Masculino'),
       Genero('F', 'Feminino'),
-      Genero('NB', 'Não binário'),
+      Genero('N', 'Não binário'),
     ];
+  }
+
+  @override
+  String toString() {
+    return name;
+  }
+
+  bool operator == (Object other) {
+    if (identical(this, other)) return true;
+    if (other.runtimeType != runtimeType) return false;
+    return other is Genero && other.id == id && other.name == name;
   }
 }
