@@ -10,6 +10,8 @@ final String telColumn = "telefone";
 final String generoColumn = "sexo";
 final String cidadeColumn = "cidade";
 final String ufColumn = "uf";
+final String imgColumn = "img";
+final String sendColumn = "send";
 
 class QuestionarioModel{
   static final QuestionarioModel _instance = QuestionarioModel.internal();
@@ -34,27 +36,32 @@ class QuestionarioModel{
     final path =  join(databasesPath,"questionario.db");
     return await openDatabase(path,version: 1,onCreate: (Database db,int newerversion) async{
       await db.execute(
-          "CREATE TABLE $questTable ($idColumn INTEGER PRIMARY KEY,$cpfColumn TEXT,$nomeColumn TEXT, $telColumn TEXT, $generoColumn TEXT, $cidadeColumn TEXT, $ufColumn TEXT)"
+          "CREATE TABLE $questTable ($idColumn INTEGER PRIMARY KEY,$cpfColumn TEXT,$nomeColumn TEXT, $telColumn TEXT, $generoColumn TEXT, $cidadeColumn TEXT, $ufColumn TEXT,$imgColumn TEXT, $sendColumn INTEGER)"
       );
     });
+  }
+  
+  Future<int> deleteQuest(int id) async{
+    Database dbQuest = await db;
+    return await dbQuest.delete(questTable,where: "$idColumn = ?",whereArgs: [id]);
   }
 
   Future<List> getDataQuest() async{
     Database dbQuest = await db;
     List listMap = await dbQuest.rawQuery("Select * FROM $questTable");
-    List<Questionario> listQuest = List();
+    List<QuestionarioList> listQuest = List();
     for(Map m in listMap){
-      listQuest.add(Questionario.fromMap(m));
+      listQuest.add(QuestionarioList.fromMap(m));
     }
   }
 
-  Future<Questionario> saveQuest(Questionario quest) async{
+  Future<QuestionarioList> saveQuest(QuestionarioList quest) async{
     Database dbQuest = await db;
     quest.id = await dbQuest.insert(questTable, quest.toMap());
     return quest;
   }
 
-  Future<int> updateQuest(Questionario quest) async {
+  Future<int> updateQuest(QuestionarioList quest) async {
     Database dbContact = await db;
     return await dbContact.update(questTable,
         quest.toMap(),
@@ -71,7 +78,7 @@ class QuestionarioModel{
 
 }
 
-class Questionario{
+class QuestionarioList{
   int id;
   String cpf;
   String nome;
@@ -79,10 +86,12 @@ class Questionario{
   String cidade;
   String uf;
   String telefone;
+  String img;
+  int send;
 
-  Questionario();
+  QuestionarioList();
 
-  Questionario.fromMap(Map map){
+  QuestionarioList.fromMap(Map map){
     id = map[idColumn];
     cpf = map[cpfColumn];
     nome = map[nomeColumn];
@@ -90,6 +99,8 @@ class Questionario{
     cidade = map[cidadeColumn];
     uf = map[ufColumn];
     telefone  = map[telColumn];
+    img = map[imgColumn];
+    send = map[sendColumn];
   }
 
   Map toMap(){
@@ -99,9 +110,10 @@ class Questionario{
      telColumn:telefone,
      generoColumn:genero,
      cidadeColumn:cidade,
-     ufColumn:uf
+     ufColumn:uf,
+     imgColumn:img,
+     sendColumn:send
    };
-
    if(id != null){
      map[idColumn] = id;
    }

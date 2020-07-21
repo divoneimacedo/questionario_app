@@ -1,12 +1,19 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
+import 'package:questionario_app/model/questionario_model.dart';
+import 'questionario.dart';
 import 'package:flutter/material.dart';
-import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+enum SendOptions  {send}
+
 class Home extends StatelessWidget{
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Questionário',
       theme: ThemeData(
         primarySwatch: Colors.blue,
         /*visualDensity: VisualDensity.adaptivePlatformDensity,*/
@@ -22,120 +29,182 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  //instancia modelo
+  QuestionarioModel questionario = QuestionarioModel();
+  List<QuestionarioList> listForm = List();
 
-  final cpfController = TextEditingController();
-  final nomeController = TextEditingController();
-  final telefoneController = TextEditingController();
-  final cidadeController = TextEditingController();
-  final ufController = TextEditingController();
-
-  var maskTel = MaskTextInputFormatter(mask: "(##) #####-####", filter: { "#": RegExp(r'[0-9]') });
-  var maskCPF = MaskTextInputFormatter(mask: "###.###.###-##", filter: { "#": RegExp(r'[0-9]') });
-  //var maskDefault = MaskTextInputFormatter(mask: "#", filter: { "#": RegExp(r'[A-Za-z0-9]') });
-  Genero _genero;
+  @override
+  void initState(){
+    super.initState();
+    _getAllForms();
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: AppBar(
-        title: Text("Questionário"),
+        title: Text("Dados preenchidos"),
         centerTitle: true,
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.send),
-            onPressed: (){}
-
+          PopupMenuButton<SendOptions>(
+            itemBuilder: (context) => <PopupMenuEntry<SendOptions>>[
+              const  PopupMenuItem(
+                child: Text("Enviar questionários pendentes"),
+                value: SendOptions.send,
+              )
+            ],
+            onSelected: _sendForms,
           )
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.all(10.0),
-        child: Padding(
-          padding: EdgeInsets.all(10),
-            child:Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                  buildTextField("CPF", cpfController, maskCPF, TextInputType.number),
-                  Divider(),
-                  buildTextField("Nome", nomeController, null, TextInputType.text),
-                  Divider(),
-                  buildTextField("Telefone", telefoneController, maskTel, TextInputType.phone),
-                Divider(),
-                DropdownButton<Genero>(
-                  underline: SizedBox(),
-                  value: _genero,
-                  hint: Text("Selecione o Gênero"),
-                  items: Genero.getGeneros().map((Genero gen) {
-                    return DropdownMenuItem<Genero>(
-                      value: gen,
-                      child: Text(gen.name),
-                    );
-                  }).toList(),
-
-                  onChanged: (Genero val) {
-                    setState(() {
-                      _genero = val;
-                      print(_genero.name);
-                    });
-                  },
-                )
-
-              ],
-
-          
-        )),
+      backgroundColor: Colors.white,
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showFormPage,
+        child: Icon(Icons.add),
       ),
+      body: ListView.builder(
+          padding: EdgeInsets.all(10.0),
+          itemCount: listForm.length,
+          itemBuilder: (context,index){
+            return _formCard(context,index);
+          }
+      )
+      ,
     );
   }
 
-  Widget buildTextField(String label,TextEditingController c,MaskTextInputFormatter m,TextInputType t){
-    if(m!=null)
-      return TextField(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
-        controller: c,
-        inputFormatters: [ m ],
-        keyboardType: t,
-      );
-    else
-      return TextField(
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(),
-        ),
-        controller: c,
-        keyboardType: t,
-      );
+  void _sendForms(SendOptions result) async{
 
+  }
+
+  Widget _formCard(BuildContext context, int index){
+    return GestureDetector(
+      child: Card(
+        child: Padding(
+          padding: EdgeInsets.all(10.0),
+          child: Row(
+            children: <Widget>[
+              Container(
+                width: 80.0,
+                height: 80.0,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                      image: listForm[index].img != null ?
+                      FileImage(File(listForm[index].img)) :
+                      AssetImage("images/person.png"),
+                      fit: BoxFit.cover
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 10.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(listForm[index].nome ?? "",
+                      style: TextStyle(fontSize: 22.0,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    Text(listForm[index].cpf ?? "",
+                      style: TextStyle(fontSize: 18.0),
+                    ),
+                    Text(listForm[index].telefone ?? "",
+                      style: TextStyle(fontSize: 18.0),
+                    )
+                  ],
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+      onTap: (){
+        _showOptions(context, index);
+      },
+    );
+  }
+
+  void _showOptions(BuildContext context, int index){
+    showModalBottomSheet(
+        context: context,
+        builder: (context){
+          return BottomSheet(
+            onClosing: (){},
+            builder: (context){
+              return Container(
+                padding: EdgeInsets.all(10.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: FlatButton(
+                        child: Text("Ligar",
+                          style: TextStyle(color: Colors.red, fontSize: 20.0),
+                        ),
+                        onPressed: (){
+                          launch("tel:${listForm[index].telefone}");
+                          Navigator.pop(context);
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: FlatButton(
+                        child: Text("Editar",
+                          style: TextStyle(color: Colors.red, fontSize: 20.0),
+                        ),
+                        onPressed: (){
+                          Navigator.pop(context);
+                          _showFormPage(questionarioList: listForm[index]);
+                        },
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: FlatButton(
+                        child: Text("Excluir",
+                          style: TextStyle(color: Colors.red, fontSize: 20.0),
+                        ),
+                        onPressed: (){
+                          questionario.deleteQuest(listForm[index].id);
+                          setState(() {
+                            listForm.removeAt(index);
+                            Navigator.pop(context);
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }
+    );
+  }
+
+  void _showFormPage({QuestionarioList questionarioList}) async {
+    final recContact = await Navigator.push(context,
+        MaterialPageRoute(builder: (context) => QuestionarioPage(questionarioList: questionarioList,))
+    );
+    if(recContact != null){
+      if(questionarioList != null){
+        await questionario.updateQuest(recContact);
+      } else {
+        await questionario.saveQuest(recContact);
+      }
+      _getAllForms();
+    }
+  }
+
+  void _getAllForms(){
+    questionario.getDataQuest().then((list) {
+      setState(() {
+        listForm = list;
+      });
+    });
   }
 }
 
-
-class Genero {
-  final String id;
-  final String name;
-
-  Genero(this.id, this.name);
-
-  static List<Genero> getGeneros() {
-    return <Genero>[
-      Genero('M', 'Masculino'),
-      Genero('F', 'Feminino'),
-      Genero('N', 'Não binário'),
-    ];
-  }
-
-  @override
-  String toString() {
-    return name;
-  }
-
-  bool operator == (Object other) {
-    if (identical(this, other)) return true;
-    if (other.runtimeType != runtimeType) return false;
-    return other is Genero && other.id == id && other.name == name;
-  }
-}
