@@ -37,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   void initState(){
     super.initState();
     _getAllForms();
+
   }
 
   @override
@@ -64,7 +65,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: ListView.builder(
           padding: EdgeInsets.all(10.0),
-          itemCount: listForm.length,
+          itemCount: (listForm != null ? listForm.length: 0),
           itemBuilder: (context,index){
             return _formCard(context,index);
           }
@@ -186,6 +187,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _showFormPage({QuestionarioList questionarioList}) async {
+    //print(questionarioList);
     final recContact = await Navigator.push(context,
         MaterialPageRoute(builder: (context) => QuestionarioPage(questionarioList: questionarioList,))
     );
@@ -200,9 +202,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _getAllForms(){
+    print("ok");
     questionario.getDataQuest().then((list) {
+      print(list);
       setState(() {
         listForm = list;
+        print(listForm);
       });
     });
   }

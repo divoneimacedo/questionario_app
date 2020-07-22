@@ -33,7 +33,7 @@ class QuestionarioModel{
 
   Future<Database> initDb() async{
     final databasesPath = await getDatabasesPath();
-    final path =  join(databasesPath,"questionario.db");
+    final path =  join(databasesPath,"questionarionew.db");
     return await openDatabase(path,version: 1,onCreate: (Database db,int newerversion) async{
       await db.execute(
           "CREATE TABLE $questTable ($idColumn INTEGER PRIMARY KEY,$cpfColumn TEXT,$nomeColumn TEXT, $telColumn TEXT, $generoColumn TEXT, $cidadeColumn TEXT, $ufColumn TEXT,$imgColumn TEXT, $sendColumn INTEGER)"
@@ -49,10 +49,13 @@ class QuestionarioModel{
   Future<List> getDataQuest() async{
     Database dbQuest = await db;
     List listMap = await dbQuest.rawQuery("Select * FROM $questTable");
+    //print(listMap);
     List<QuestionarioList> listQuest = List();
     for(Map m in listMap){
+
       listQuest.add(QuestionarioList.fromMap(m));
     }
+    return listQuest;
   }
 
   Future<QuestionarioList> saveQuest(QuestionarioList quest) async{
@@ -92,6 +95,7 @@ class QuestionarioList{
   QuestionarioList();
 
   QuestionarioList.fromMap(Map map){
+    print(map[idColumn]);
     id = map[idColumn];
     cpf = map[cpfColumn];
     nome = map[nomeColumn];
@@ -123,7 +127,7 @@ class QuestionarioList{
 
   @override
   String toString(){
-    return "Questionario(cpf:$cpf,nome: $nome,telefone:$telefone,genero:$genero,cidade:$cidade,uf:$uf)";
+    return "Questionario(cpf:$cpf,nome: $nome,genero:$genero,cidade:$cidade,uf:$uf,telefone:$telefone,img:$img,send:$send)";
   }
 }
 
