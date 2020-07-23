@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:flutter/cupertino.dart';
 import 'package:questionario_app/model/questionario_model.dart';
 import 'questionario.dart';
@@ -93,7 +92,7 @@ class _HomePageState extends State<HomePage> {
                   image: DecorationImage(
                       image: listForm[index].img != null ?
                       FileImage(File(listForm[index].img)) :
-                      AssetImage("images/person.png"),
+                      AssetImage("assets/images/person.png"),
                       fit: BoxFit.cover
                   ),
                 ),
