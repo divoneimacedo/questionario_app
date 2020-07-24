@@ -32,6 +32,7 @@ dependencies:
   url_launcher: ^5.0.2
   image_picker: ^0.6.0+3
   mask_text_input_formatter: ^1.0.7
+  http: ^0.12.0+2
 
 dev_dependencies:
   flutter_test:

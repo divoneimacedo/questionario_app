@@ -23,6 +23,8 @@ class Home extends StatelessWidget{
 }
 
 class HomePage extends StatefulWidget {
+  final Map<String,dynamic> user;
+  HomePage( { this.user } );
   @override
   _HomePageState createState() => _HomePageState();
 }
