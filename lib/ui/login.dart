@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:questionario_app/model/login_api.dart';
 import 'package:questionario_app/ui/home.dart';
 
+
 class Login extends StatelessWidget {
   // This widget is the root of your application.
   @override
@@ -22,14 +23,31 @@ class _LoginPageState extends State<LoginPage> {
   final LoginApi login = LoginApi();
   final userController = TextEditingController();
   final senhaController = TextEditingController();
+  SnackBar snack;
+  String errorLogin;
+  bool loginErro = false;
+  bool connect = true;
   bool _isloading = false;
-  /*void initState(){
+  void initState() {
     super.initState();
-    login.user = "divonei";
-    login.pass = "wsteste2011";
-    login.login().then((list) {
-      print(list);
-    } );
+    //checkConnect();
+  }
+
+  /*void checkConnect() async {
+    bool connected;
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult == ConnectivityResult.wifi) {
+      // I am connected to a wifi network.
+      connected = true;
+    } else if (connectivityResult == ConnectivityResult.mobile) {
+      // I am connected to a mobile network.
+      connected = true;
+    } else {
+      connected = false;
+    }
+    setState(() {
+      connect = connected;
+    });
   }*/
 
   @override
@@ -90,7 +108,14 @@ class _LoginPageState extends State<LoginPage> {
               ),
               GestureDetector(
                   onTap: () {
-                    logar(userController.text, senhaController.text);
+                    Future<bool> retorno = logar(userController.text, senhaController.text);
+                    //print(retorno);
+                    if(retorno==false) {
+                      snack = SnackBar(
+                        content: Text(errorLogin),
+                      );
+                      Scaffold.of(context).showSnackBar(snack);
+                    }
                   },
                   child: Padding(
                       padding: EdgeInsets.fromLTRB(10.0, 0, 0, 0),
@@ -114,6 +139,15 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ))),
               Container(
+                padding: EdgeInsets.all(20.0),
+                  child: connect == false ? Center(child:Row( mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(Icons.warning,color: Colors.yellow,size: 40.0,),
+                      Text("Sem conexão com internet", style: TextStyle(color: Colors.white,fontSize: 20.0),)
+                    ],
+                  )) : null,
+              ),
+              Container(
                 padding: EdgeInsets.all(30.0),
                 child: _isloading
                     ? CircularProgressIndicator(
@@ -122,26 +156,77 @@ class _LoginPageState extends State<LoginPage> {
                       )
                     : Text(""),
               ),
+
             ],
           ),
         ),
       ),
     );
   }
+  /*Future<bool> _requestPop(){
+    if(_userEdited){
+      showDialog(context: context,
+          builder: (context){
+            return AlertDialog(
+              title: Text("Descartar Alterações?"),
+              content: Text("Se sair as alterações serão perdidas."),
+              actions: <Widget>[
+                FlatButton(
+                  child: Text("Cancelar"),
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                ),
+                FlatButton(
+                  child: Text("Sim"),
+                  onPressed: (){
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          }
+      );
+      return Future.value(false);
+    } else {
+      return Future.value(true);
+    }
+  }
+}*/
 
-  void logar(String user, String senha) async {
+  Future<bool> logar(String user, String senha) async {
+    bool _login = false;
     login.user = user;
     login.pass = senha;
     setState(() {
       _isloading = true;
     });
-    login.login().then((list) async{
 
+    login.login().then((list) async {
       setState(() {
+
         _isloading = false;
+        if(list==null){
+          connect = false;
+        }else{
+          connect = true;
+          if(list['login']==false){
+            loginErro = true;
+            errorLogin = list['msg'];
+
+          }else {
+            Navigator.pop(context);
+            Navigator.push(
+              context, MaterialPageRoute(builder: (context) => HomePage()));
+
+          }
+        }
+
       });
-      Navigator.pop(context);
-      Navigator.push(context,MaterialPageRoute(builder: (context) => HomePage()));
+      /**/
     });
+
+    return _login;
   }
 }

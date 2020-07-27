@@ -29,8 +29,20 @@ class LoginApi{
 
   Future<Map> login() async{
     Map<String,String> map = postBody();
-    print(map);
-    http.Response response = await http.post(url_api,body: map);
-    return jsonDecode(response.body);
+    Map<String,dynamic> json;
+    try {
+      http.Response response = await http.post(url_api, body: map);
+      if (response.statusCode == 200) {
+        json = jsonDecode(response.body);
+
+      } else {
+        json['connection'] = false;
+        json['msg'] = response.headers.toString();
+      }
+    }catch(e){
+      print("erro");
+
+    }
+    return json;
   }
 }
